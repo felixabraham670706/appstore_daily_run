@@ -56,3 +56,9 @@ PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDri
 2026-08-06 11:15:48,026 [INFO] Saved workbook: C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\app_ratings_history.xlsx
 2026-08-06 11:15:48,026 [INFO] === Done ===
 
+2026-08-06 07:55:29,426 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 07:55:29,635 [INFO] Google Play OK — Total Ratings=223908, Avg=4.696131
+2026-08-06 07:55:29,894 [INFO] Apple App Store OK — Total Ratings=320219, Avg=4.73752
+2026-08-06 07:55:29,923 [INFO] Saved workbook: /home/runner/work/appstore_daily_run/appstore_daily_run/app_ratings_history.xlsx
+2026-08-06 07:55:29,923 [INFO] === Done ===
+
