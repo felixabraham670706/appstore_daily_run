@@ -365,9 +365,22 @@ def update_monthly_summary(wb: Workbook, day_str: str):
     the day-by-day numbers already sitting in the Summary sheet, works out
     this month's total NEW ratings and this month's average rating (same
     weighted-average trick as the daily calculation in update_summary_sheet,
-    just applied across the whole month instead of one day), and writes
+    just applied across a stretch of days instead of one day), and writes
     one row into a "Monthly Summary" tab — keyed by "YYYY-MM" so re-running
     on the same month-end day updates that row instead of duplicating it.
+
+    Baseline used for the delta:
+      - Ideally, the last row from BEFORE this month started (e.g. July 31
+        if today is August 31) — this gives a true full-calendar-month figure.
+      - If that doesn't exist (tracking only started partway through this
+        month, or this is the very first month ever tracked), it falls back
+        to the EARLIEST row you do have this month, so the numbers still
+        reflect "new ratings since tracking began" rather than sitting
+        blank. That fallback is flagged in the "Notes" column so it's
+        obvious the figure covers a partial month, not the full one.
+      - If today is the ONLY row that exists (tracking started and hit
+        month-end on the very same day), there's genuinely nothing to
+        diff against, and the figures stay blank.
     """
     if SUMMARY_SHEET not in wb.sheetnames:
         return None
@@ -388,13 +401,23 @@ def update_monthly_summary(wb: Workbook, day_str: str):
     month_prefix = f"{year:04d}-{month:02d}"
     first_day_this_month = f"{month_prefix}-01"
 
-    # baseline = the most recent row strictly before this month started
+    # preferred baseline = the most recent row strictly before this month started
     baseline = None
     for r in rows:
         if r[0] < first_day_this_month:
             baseline = r
         else:
             break
+
+    is_partial_month = False
+    if baseline is None:
+        # no full-month baseline available — fall back to the earliest row
+        # we DO have this month (as long as it isn't today's own row)
+        this_month_rows = [r for r in rows if r[0] >= first_day_this_month]
+        if len(this_month_rows) >= 2:
+            baseline = this_month_rows[0]
+            is_partial_month = True
+        # else: today is the only row that exists — nothing to diff against
 
     g_today_total, g_today_avg = today_row[1], today_row[2]
     a_today_total, a_today_avg = today_row[5], today_row[6]
@@ -415,14 +438,16 @@ def update_monthly_summary(wb: Workbook, day_str: str):
             if a_month_new > 0 else None
         )
     else:
-        # first month ever tracked — no prior baseline to diff against
         g_month_new = a_month_new = None
         g_month_avg = a_month_avg = None
+
+    notes = f"Partial month — data from {baseline[0]}" if is_partial_month else ""
 
     header = [
         "Month",
         "GPlay Total Ratings (EOM)", "GPlay New Ratings This Month", "GPlay Avg Rating This Month",
         "Apple Total Ratings (EOM)", "Apple New Ratings This Month", "Apple Avg Rating This Month",
+        "Notes",
     ]
 
     if MONTHLY_SHEET in wb.sheetnames:
@@ -435,7 +460,7 @@ def update_monthly_summary(wb: Workbook, day_str: str):
             cell.font = HEADER_FONT
             cell.fill = HEADER_FILL
         ws_m.freeze_panes = "A2"
-        for col, width in zip("ABCDEFG", [12, 20, 24, 24, 20, 24, 24]):
+        for col, width in zip("ABCDEFGH", [12, 20, 24, 24, 20, 24, 24, 32]):
             ws_m.column_dimensions[col].width = width
 
     row_idx = None
@@ -445,7 +470,7 @@ def update_monthly_summary(wb: Workbook, day_str: str):
             break
 
     values = [month_prefix, g_today_total, g_month_new, g_month_avg,
-              a_today_total, a_month_new, a_month_avg]
+              a_today_total, a_month_new, a_month_avg, notes]
     if row_idx:
         for c, v in enumerate(values, start=1):
             ws_m.cell(row=row_idx, column=c, value=v)
