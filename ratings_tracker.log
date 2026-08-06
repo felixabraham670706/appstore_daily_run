@@ -82,3 +82,10 @@ PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDri
 2026-08-06 09:03:27,353 [INFO] Email sent to: felixab@emiratesnbd.com, felixabraham7576@gmail.com
 2026-08-06 09:03:27,353 [INFO] === Done ===
 
+2026-08-06 09:12:41,215 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 09:12:41,443 [INFO] Google Play OK — Total Ratings=223925, Avg=4.696075
+2026-08-06 09:12:41,477 [INFO] Apple App Store OK — Total Ratings=320219, Avg=4.73752
+2026-08-06 09:12:41,500 [INFO] Saved workbook: /home/runner/work/appstore_daily_run/appstore_daily_run/app_ratings_history.xlsx
+2026-08-06 09:12:43,770 [INFO] Email sent to: felixab@emiratesnbd.com, felixabraham7576@gmail.com
+2026-08-06 09:12:43,770 [INFO] === Done ===
+
