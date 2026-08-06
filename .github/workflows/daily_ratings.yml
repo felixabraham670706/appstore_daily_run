@@ -1,0 +1,33 @@
+name: Daily App Store Ratings
+
+on:
+  workflow_dispatch:   # allows triggering via the "Run workflow" button OR the GitHub API (see below)
+
+permissions:
+  contents: write       # lets this workflow commit the updated file back to the repo
+
+jobs:
+  update-ratings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ratings tracker
+        run: python app_ratings_tracker.py
+
+      - name: Commit and push updated workbook
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_ratings_history.xlsx ratings_tracker.log
+          git diff --cached --quiet || git commit -m "Daily ratings update: $(date +'%Y-%m-%d')"
+          git push
