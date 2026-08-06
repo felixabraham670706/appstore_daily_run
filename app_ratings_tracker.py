@@ -16,11 +16,20 @@ app, then:
          minus yesterday's total)
        - an estimated AVERAGE RATING for just that day's new ratings
          (see the note in `update_summary_sheet` for how this is derived)
-  3. (Re)draws two line charts on the Summary tab:
+     ...and (re)draws two line charts on it:
        - Daily new ratings, Google Play vs Apple
        - Daily average rating, Google Play vs Apple
+  3. On the LAST CALENDAR DAY of the month (28th/29th/30th/31st, whichever
+     applies that month), also writes one row into a "Monthly Summary" tab
+     with that month's total new ratings and average rating per platform
+     (same weighted-average trick as the daily figures, just applied
+     across the whole month).
+  4. Emails the resulting workbook as an attachment to whichever addresses
+     are listed in RECIPIENT_EMAILS (see the email config section below —
+     nothing here is hardcoded; it all comes from environment variables).
 
-Designed to be run once a day (e.g. via cron at 08:00) via:
+Designed to be run once a day (e.g. via a scheduled GitHub Actions
+workflow, or cron) via:
     python3 app_ratings_tracker.py
 """
 
@@ -28,13 +37,23 @@ import os
 import sys
 import logging
 import traceback
+import smtplib
+import calendar
 from datetime import date
+from email.message import EmailMessage
 
 import requests
+from dotenv import load_dotenv
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.chart import LineChart, Reference
 from openpyxl.utils import get_column_letter
+
+# Loads variables from a local ".env" file if one exists next to this
+# script (handy for testing on your own PC). In GitHub Actions there is
+# no .env file — the same variable names are injected as real environment
+# variables from repo Secrets instead, so this call is simply a no-op there.
+load_dotenv()
 
 # ----------------------------------------------------------------------
 # CONFIG — edit these for your app(s)
@@ -54,9 +73,34 @@ LOG_PATH = os.path.join(BASE_DIR, "ratings_tracker.log")
 SUMMARY_SHEET = "Summary"
 GOOGLE_SHEET = "Google Play"
 APPLE_SHEET = "Apple App Store"
+MONTHLY_SHEET = "Monthly Summary"
 
 # ----------------------------------------------------------------------
-# LOGGING — so a cron run (which you never watch live) leaves a trail
+# EMAIL CONFIG — every value below comes from an environment variable.
+# NEVER hardcode an email address's password directly in this file —
+# this file gets pushed to git. Set these instead:
+#
+#   Locally (testing on your PC):
+#       create a file named ".env" next to this script (never commit it —
+#       it's already in .gitignore) containing:
+#           SENDER_EMAIL=youraccount@gmail.com
+#           SENDER_PASSWORD=your_16_char_app_password
+#           RECIPIENT_EMAILS=personal@gmail.com,you@yourcompany.com
+#           SMTP_SERVER=smtp.gmail.com
+#           SMTP_PORT=587
+#
+#   In GitHub Actions (scheduled runs):
+#       add the same names as repo Secrets — Settings → Secrets and
+#       variables → Actions → New repository secret — and reference them
+#       in the workflow yml's `env:` block (see README).
+#
+# Note: you only need ONE authenticated sender account. Both your personal
+# and office addresses just go in RECIPIENT_EMAILS, comma-separated — you
+# do NOT need your office mailbox's own SMTP credentials.
+# ----------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
+# LOGGING — so a scheduled run (which you never watch live) leaves a trail
 # ----------------------------------------------------------------------
 logging.basicConfig(
     filename=LOG_PATH,
@@ -315,11 +359,160 @@ def _add_charts(ws, n_rows):
     ws.add_chart(chart2, "K20")
 
 
+def update_monthly_summary(wb: Workbook, day_str: str):
+    """
+    Only meant to be called on the last calendar day of the month. Reads
+    the day-by-day numbers already sitting in the Summary sheet, works out
+    this month's total NEW ratings and this month's average rating (same
+    weighted-average trick as the daily calculation in update_summary_sheet,
+    just applied across the whole month instead of one day), and writes
+    one row into a "Monthly Summary" tab — keyed by "YYYY-MM" so re-running
+    on the same month-end day updates that row instead of duplicating it.
+    """
+    if SUMMARY_SHEET not in wb.sheetnames:
+        return None
+
+    ws_summary = wb[SUMMARY_SHEET]
+    rows = []
+    for row in ws_summary.iter_rows(min_row=2, values_only=True):
+        if row[0] is None:
+            continue
+        rows.append(row)  # Date, GTotal, GAvg, GNew, GDayAvg, ATotal, AAvg, ANew, ADayAvg
+    rows.sort(key=lambda r: r[0])
+
+    today_row = next((r for r in rows if r[0] == day_str), None)
+    if today_row is None:
+        return None
+
+    year, month = int(day_str[:4]), int(day_str[5:7])
+    month_prefix = f"{year:04d}-{month:02d}"
+    first_day_this_month = f"{month_prefix}-01"
+
+    # baseline = the most recent row strictly before this month started
+    baseline = None
+    for r in rows:
+        if r[0] < first_day_this_month:
+            baseline = r
+        else:
+            break
+
+    g_today_total, g_today_avg = today_row[1], today_row[2]
+    a_today_total, a_today_avg = today_row[5], today_row[6]
+
+    if baseline:
+        g_base_total, g_base_avg = baseline[1], baseline[2]
+        a_base_total, a_base_avg = baseline[5], baseline[6]
+
+        g_month_new = g_today_total - g_base_total
+        a_month_new = a_today_total - a_base_total
+
+        g_month_avg = (
+            round((g_today_avg * g_today_total - g_base_avg * g_base_total) / g_month_new, 3)
+            if g_month_new > 0 else None
+        )
+        a_month_avg = (
+            round((a_today_avg * a_today_total - a_base_avg * a_base_total) / a_month_new, 3)
+            if a_month_new > 0 else None
+        )
+    else:
+        # first month ever tracked — no prior baseline to diff against
+        g_month_new = a_month_new = None
+        g_month_avg = a_month_avg = None
+
+    header = [
+        "Month",
+        "GPlay Total Ratings (EOM)", "GPlay New Ratings This Month", "GPlay Avg Rating This Month",
+        "Apple Total Ratings (EOM)", "Apple New Ratings This Month", "Apple Avg Rating This Month",
+    ]
+
+    if MONTHLY_SHEET in wb.sheetnames:
+        ws_m = wb[MONTHLY_SHEET]
+    else:
+        ws_m = wb.create_sheet(MONTHLY_SHEET)
+        ws_m.append(header)
+        for c in range(1, len(header) + 1):
+            cell = ws_m.cell(row=1, column=c)
+            cell.font = HEADER_FONT
+            cell.fill = HEADER_FILL
+        ws_m.freeze_panes = "A2"
+        for col, width in zip("ABCDEFG", [12, 20, 24, 24, 20, 24, 24]):
+            ws_m.column_dimensions[col].width = width
+
+    row_idx = None
+    for r in range(2, ws_m.max_row + 1):
+        if ws_m.cell(row=r, column=1).value == month_prefix:
+            row_idx = r
+            break
+
+    values = [month_prefix, g_today_total, g_month_new, g_month_avg,
+              a_today_total, a_month_new, a_month_avg]
+    if row_idx:
+        for c, v in enumerate(values, start=1):
+            ws_m.cell(row=row_idx, column=c, value=v)
+    else:
+        ws_m.append(values)
+
+    return ws_m
+
+
+# ----------------------------------------------------------------------
+# EMAIL
+# ----------------------------------------------------------------------
+def send_email_with_attachment(attachment_path: str, subject: str, body: str):
+    """
+    Emails the current workbook to whoever is listed in RECIPIENT_EMAILS.
+    All settings come from environment variables (see the EMAIL CONFIG
+    comment near the top of this file). If they aren't set, this logs a
+    warning and simply skips emailing — it never crashes the whole run,
+    since the workbook has already been saved successfully by this point.
+    """
+    sender = os.environ.get("SENDER_EMAIL")
+    password = os.environ.get("SENDER_PASSWORD")
+    recipients_raw = os.environ.get("RECIPIENT_EMAILS")
+    smtp_server = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+
+    if not sender or not password or not recipients_raw:
+        log_and_print(
+            "Email not sent — SENDER_EMAIL / SENDER_PASSWORD / RECIPIENT_EMAILS "
+            "are not set. Skipping the email step (the workbook itself was "
+            "still saved normally).",
+            "warning",
+        )
+        return
+
+    recipients = [r.strip() for r in recipients_raw.split(",") if r.strip()]
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = sender
+    msg["To"] = ", ".join(recipients)
+    msg.set_content(body)
+
+    with open(attachment_path, "rb") as f:
+        msg.add_attachment(
+            f.read(),
+            maintype="application",
+            subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            filename=os.path.basename(attachment_path),
+        )
+
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(sender, password)
+            server.send_message(msg)
+        log_and_print(f"Email sent to: {', '.join(recipients)}")
+    except Exception:
+        log_and_print("FAILED sending email:\n" + traceback.format_exc(), "error")
+
+
 # ----------------------------------------------------------------------
 # MAIN
 # ----------------------------------------------------------------------
 def main():
-    today_str = date.today().isoformat()
+    today = date.today()
+    today_str = today.isoformat()
     log_and_print(f"=== Ratings tracker run: {today_str} ===")
 
     try:
@@ -353,11 +546,29 @@ def main():
             a_total=float(apple_data["Total Ratings"] or 0),
             a_avg=float(apple_data["Average Rating"] or 0),
         )
+
+        last_day_of_month = calendar.monthrange(today.year, today.month)[1]
+        if today.day == last_day_of_month:
+            update_monthly_summary(wb, today_str)
+            log_and_print(f"Month-end detected ({today_str}) — updated Monthly Summary tab.")
+
         wb.save(EXCEL_PATH)
         log_and_print(f"Saved workbook: {EXCEL_PATH}")
     except Exception:
         log_and_print("FAILED writing Excel workbook:\n" + traceback.format_exc(), "error")
         sys.exit(1)
+
+    send_email_with_attachment(
+        attachment_path=EXCEL_PATH,
+        subject=f"App Store Ratings Update — {today_str}",
+        body=(
+            f"Attached is the latest ratings workbook as of {today_str}.\n\n"
+            f"Google Play — Total Ratings: {google_data['Total Ratings']}, "
+            f"Average Rating: {google_data['Average Rating']}\n"
+            f"Apple App Store — Total Ratings: {apple_data['Total Ratings']}, "
+            f"Average Rating: {apple_data['Average Rating']}"
+        ),
+    )
 
     log_and_print("=== Done ===\n")
 

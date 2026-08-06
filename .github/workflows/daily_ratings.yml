@@ -1,7 +1,7 @@
 name: Daily App Store Ratings
 
 on:
-  workflow_dispatch:   # allows triggering via the "Run workflow" button OR the GitHub API (see below)
+  workflow_dispatch:   # allows triggering via the "Run workflow" button OR the GitHub API
 
 permissions:
   contents: write       # lets this workflow commit the updated file back to the repo
@@ -22,6 +22,12 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run ratings tracker
+        env:
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
         run: python app_ratings_tracker.py
 
       - name: Commit and push updated workbook
