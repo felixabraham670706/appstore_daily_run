@@ -1,0 +1,58 @@
+2026-08-06 11:05:15,376 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 11:05:16,940 [INFO] Google Play OK — Total Ratings=223900, Avg=4.696083
+2026-08-06 11:05:17,035 [INFO] Apple App Store OK — Total Ratings=320022, Avg=4.7375
+2026-08-06 11:05:17,127 [INFO] Saved workbook: C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\app_ratings_history.xlsx
+2026-08-06 11:05:17,129 [INFO] === Done ===
+
+2026-08-06 11:09:03,348 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 11:09:04,688 [INFO] Google Play OK — Total Ratings=223909, Avg=4.696083
+2026-08-06 11:09:04,849 [INFO] Apple App Store OK — Total Ratings=320219, Avg=4.73752
+2026-08-06 11:09:05,299 [ERROR] FAILED writing Excel workbook:
+Traceback (most recent call last):
+  File "app_ratings_tracker.py", line 356, in main
+    wb.save(EXCEL_PATH)
+  File "C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\venv\lib\site-packages\openpyxl\workbook\workbook.py", line 386, in save
+    save_workbook(self, filename)
+  File "C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\venv\lib\site-packages\openpyxl\writer\excel.py", line 291, in save_workbook
+    archive = ZipFile(filename, 'w', ZIP_DEFLATED, allowZip64=True)
+  File "C:\Users\FELIX ABRAHAM\AppData\Local\Programs\Python\Python38\lib\zipfile.py", line 1216, in __init__
+    self.fp = io.open(file, filemode)
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDrive\\Desktop\\dashboard 5\\App review\\Daily update\\app_ratings_history.xlsx'
+
+2026-08-06 11:09:15,936 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 11:09:17,174 [INFO] Google Play OK — Total Ratings=223909, Avg=4.696083
+2026-08-06 11:09:17,237 [INFO] Apple App Store OK — Total Ratings=320219, Avg=4.73752
+2026-08-06 11:09:17,343 [INFO] Saved workbook: C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\app_ratings_history.xlsx
+2026-08-06 11:09:17,343 [INFO] === Done ===
+
+2026-08-06 11:10:25,048 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 11:10:26,662 [INFO] Google Play OK — Total Ratings=223900, Avg=4.696083
+2026-08-06 11:10:26,769 [INFO] Apple App Store OK — Total Ratings=320219, Avg=4.73752
+2026-08-06 11:10:27,290 [INFO] Saved workbook: C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\app_ratings_history.xlsx
+2026-08-06 11:10:27,320 [INFO] === Done ===
+
+2026-08-06 11:14:47,929 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 11:14:49,145 [INFO] Google Play OK — Total Ratings=223909, Avg=4.696083
+2026-08-06 11:14:49,211 [INFO] Apple App Store OK — Total Ratings=320219, Avg=4.73752
+2026-08-06 11:14:49,226 [ERROR] FAILED writing Excel workbook:
+Traceback (most recent call last):
+  File "app_ratings_tracker.py", line 346, in main
+    wb = get_or_create_workbook(EXCEL_PATH)
+  File "app_ratings_tracker.py", line 155, in get_or_create_workbook
+    return load_workbook(path)
+  File "C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\venv\lib\site-packages\openpyxl\reader\excel.py", line 346, in load_workbook
+    reader = ExcelReader(filename, read_only, keep_vba,
+  File "C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\venv\lib\site-packages\openpyxl\reader\excel.py", line 123, in __init__
+    self.archive = _validate_archive(fn)
+  File "C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\venv\lib\site-packages\openpyxl\reader\excel.py", line 95, in _validate_archive
+    archive = ZipFile(filename, 'r')
+  File "C:\Users\FELIX ABRAHAM\AppData\Local\Programs\Python\Python38\lib\zipfile.py", line 1216, in __init__
+    self.fp = io.open(file, filemode)
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDrive\\Desktop\\dashboard 5\\App review\\Daily update\\app_ratings_history.xlsx'
+
+2026-08-06 11:15:46,221 [INFO] === Ratings tracker run: 2026-08-06 ===
+2026-08-06 11:15:47,781 [INFO] Google Play OK — Total Ratings=223909, Avg=4.696083
+2026-08-06 11:15:47,954 [INFO] Apple App Store OK — Total Ratings=320219, Avg=4.73752
+2026-08-06 11:15:48,026 [INFO] Saved workbook: C:\Users\FELIX ABRAHAM\OneDrive\Desktop\dashboard 5\App review\Daily update\app_ratings_history.xlsx
+2026-08-06 11:15:48,026 [INFO] === Done ===
+
