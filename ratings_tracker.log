@@ -173,3 +173,29 @@ PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDri
 2026-08-18 06:00:38,906 [INFO] Email sent to: felixab@emiratesnbd.com, felixabraham7576@gmail.com
 2026-08-18 06:00:38,906 [INFO] === Done ===
 
+2026-08-18 08:17:01,244 [INFO] === Ratings tracker run: 2026-08-18 — 9 bank(s) ===
+2026-08-18 08:17:01,260 [INFO] Migrated legacy tab 'Summary' -> 'ENBD Summary'
+2026-08-18 08:17:01,261 [INFO] Migrated legacy tab 'Google Play' -> 'ENBD Google Play'
+2026-08-18 08:17:01,261 [INFO] Migrated legacy tab 'Apple App Store' -> 'ENBD Apple App Store'
+2026-08-18 08:17:01,457 [INFO] [ENBD] Google Play OK — Total Ratings=225126, Avg=4.696361
+2026-08-18 08:17:01,666 [INFO] [ENBD] Apple App Store OK — Total Ratings=321516, Avg=4.73737
+2026-08-18 08:17:01,817 [INFO] [EI] Google Play OK — Total Ratings=73790, Avg=4.6752477
+2026-08-18 08:17:01,938 [INFO] [EI] Apple App Store OK — Total Ratings=113657, Avg=4.71784
+2026-08-18 08:17:02,111 [INFO] [MASHREQ] Google Play OK — Total Ratings=141636, Avg=4.756403
+2026-08-18 08:17:02,221 [INFO] [MASHREQ] Apple App Store OK — Total Ratings=136831, Avg=4.80385
+2026-08-18 08:17:02,386 [INFO] [WIO] Google Play OK — Total Ratings=5750, Avg=4.5953
+2026-08-18 08:17:02,535 [INFO] [WIO] Apple App Store OK — Total Ratings=6648, Avg=4.80866
+2026-08-18 08:17:02,701 [INFO] [ADCB] Google Play OK — Total Ratings=64339, Avg=4.218525
+2026-08-18 08:17:02,815 [INFO] [ADCB] Apple App Store OK — Total Ratings=113017, Avg=4.68151
+2026-08-18 08:17:02,973 [INFO] [ADCB NEW] Google Play OK — Total Ratings=72500, Avg=4.688444
+2026-08-18 08:17:03,147 [INFO] [ADCB NEW] Apple App Store OK — Total Ratings=73610, Avg=4.47058
+2026-08-18 08:17:03,305 [INFO] [ADIB] Google Play OK — Total Ratings=45316, Avg=4.633644
+2026-08-18 08:17:03,444 [INFO] [ADIB] Apple App Store OK — Total Ratings=251654, Avg=4.70263
+2026-08-18 08:17:03,620 [INFO] [FAB] Google Play OK — Total Ratings=43767, Avg=4.311707
+2026-08-18 08:17:03,720 [INFO] [FAB] Apple App Store OK — Total Ratings=110975, Avg=4.63472
+2026-08-18 08:17:04,008 [INFO] [RAK] Google Play OK — Total Ratings=46132, Avg=4.485698
+2026-08-18 08:17:04,114 [INFO] [RAK] Apple App Store OK — Total Ratings=33705, Avg=4.63544
+2026-08-18 08:17:04,262 [INFO] Saved workbook: /home/runner/work/appstore_daily_run/appstore_daily_run/app_ratings_history.xlsx
+2026-08-18 08:17:05,934 [INFO] Email sent to: felixab@emiratesnbd.com, felixabraham7576@gmail.com
+2026-08-18 08:17:05,934 [INFO] === Done ===
+
