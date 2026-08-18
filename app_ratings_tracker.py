@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-App Store Ratings Tracker
-==========================
+App Store Ratings Tracker — Multi-Bank Edition
+================================================
 Fetches today's rating data for a Google Play app and an Apple App Store
-app, then:
+app for EACH bank listed in the BANKS config below, then:
 
-  1. Appends ONE ROW to a fixed "Google Play" tab and ONE ROW to a fixed
-     "Apple App Store" tab — every field as a column, "Date" as the first
-     column so you can filter/sort by day. Re-running the same day updates
-     that day's row instead of adding a duplicate.
-  2. Updates a running "Summary" tab that keeps one row per day showing:
+  1. For every bank, appends ONE ROW to a fixed "<CODE> Google Play" tab
+     and ONE ROW to a fixed "<CODE> Apple App Store" tab — every field as
+     a column, "Date" as the first column so you can filter/sort by day.
+     Re-running the same day updates that day's row instead of adding a
+     duplicate.
+  2. For every bank, updates a running "<CODE> Summary" tab that keeps one
+     row per day showing:
        - total ratings & average rating (as shown on the store) for each
          platform
        - how many NEW ratings came in that specific day (today's total
@@ -20,13 +22,48 @@ app, then:
        - Daily new ratings, Google Play vs Apple
        - Daily average rating, Google Play vs Apple
   3. On the LAST CALENDAR DAY of the month (28th/29th/30th/31st, whichever
-     applies that month), also writes one row into a "Monthly Summary" tab
-     with that month's total new ratings and average rating per platform
-     (same weighted-average trick as the daily figures, just applied
-     across the whole month).
-  4. Emails the resulting workbook as an attachment to whichever addresses
-     are listed in RECIPIENT_EMAILS (see the email config section below —
-     nothing here is hardcoded; it all comes from environment variables).
+     applies that month), also writes one row into each bank's
+     "<CODE> Monthly Summary" tab with that month's total new ratings and
+     average rating per platform (same weighted-average trick as the daily
+     figures, just applied across the whole month).
+  4. Emails the resulting workbook (ALL banks, one file) as an attachment
+     to whichever addresses are listed in RECIPIENT_EMAILS (see the email
+     config section below — nothing here is hardcoded; it all comes from
+     environment variables).
+
+BANKS COVERED (9 total, 4 tabs each = 36 tabs in one workbook):
+    ENBD (Emirates NBD), EI (Emirates Islamic), Mashreq, Wio, ADCB,
+    ADCB NEW (ADCB's separate redesigned app), ADIB, FAB, RAK (RAKBANK)
+
+Tabs are named "<CODE> Summary", "<CODE> Google Play", "<CODE> Apple App
+Store" and "<CODE> Monthly Summary" for each bank, e.g. "ENBD Summary",
+"EI Google Play", "FAB Apple App Store", etc.
+
+IMPORTANT — please double-check the app IDs before relying on this in
+production. The Google Play package names and Apple App Store numeric IDs
+for EI, Mashreq, Wio, ADCB, ADIB, FAB and RAK below were identified via web
+search (Aug 2026) by matching each bank's official store listing name/
+developer to their own website. ADCB, FAB and RAK in particular each
+publish several similarly-named apps (personal banking vs business/forex/
+securities apps), so it's worth opening each store URL in the comments
+below once to confirm it's the exact app you want tracked. If a bank ever
+relaunches under a new package/app ID, update its entry in BANKS — nothing
+else in the script needs to change.
+
+NOTE ON THE TWO ADCB ENTRIES: "ADCB" tracks their original/legacy personal
+banking app (Google Play com.adcb.bank + Apple id 547172388); "ADCB NEW"
+tracks their separate, newly redesigned "ADCB." app (Google Play
+com.adcb.nexgen + Apple id 6755109454). These are two distinct apps, so
+each gets its own 4 tabs.
+
+HEADS UP — HISTORY DISCONTINUITY: the "ADCB" entry's google_app_id was
+corrected on 2026-08-18 from com.adcb.nexgen to com.adcb.bank (the actual
+Play Store counterpart of Apple id 547172388). If you had already run this
+tracker with the old (mismatched) setting, the "ADCB Google Play" and
+"ADCB Summary" tabs will show a one-time jump in Total Ratings / Daily New
+Ratings on the date of this fix, since the totals switch from one app to a
+different one. That's expected and only affects that single transition
+day — everything from this point forward is tracking the correct app.
 
 Designed to be run once a day (e.g. via a scheduled GitHub Actions
 workflow, or cron) via:
@@ -56,24 +93,127 @@ from openpyxl.utils import get_column_letter
 load_dotenv()
 
 # ----------------------------------------------------------------------
-# CONFIG — edit these for your app(s)
+# CONFIG — one entry per bank. Add/remove/edit banks here only; every
+# other function below works off this list, so nothing else needs to
+# change to add an 8th bank later.
+#
+#   code          -> short code used as the tab-name prefix, e.g. "ENBD"
+#   display_name  -> full name used in the log and the email body
+#   google_app_id -> Google Play package id (from the play.google.com URL)
+#   google_country-> Play Store country code to fetch from
+#   apple_app_id  -> numeric Apple App Store id (from the apps.apple.com URL)
+#   apple_country -> App Store country code to fetch from
 # ----------------------------------------------------------------------
-GOOGLE_APP_ID = "com.emiratesnbd.android"
-GOOGLE_COUNTRY = "ae"
-
-APPLE_APP_ID = "1497518128"
-APPLE_COUNTRY = "ae"
+BANKS = [
+    {
+        "code": "ENBD",
+        "display_name": "Emirates NBD",
+        "google_app_id": "com.emiratesnbd.android",
+        "google_country": "ae",
+        "apple_app_id": "1497518128",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=com.emiratesislamic.android
+        # https://apps.apple.com/ae/app/ei/id1499264261
+        "code": "EI",
+        "display_name": "Emirates Islamic",
+        "google_app_id": "com.emiratesislamic.android",
+        "google_country": "ae",
+        "apple_app_id": "1499264261",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=com.vipera.ts.starter.MashreqAE
+        # https://apps.apple.com/ae/app/mashreq-uae-digital-banking/id378549193
+        "code": "MASHREQ",
+        "display_name": "Mashreq",
+        "google_app_id": "com.vipera.ts.starter.MashreqAE",
+        "google_country": "ae",
+        "apple_app_id": "378549193",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=io.wio.retail
+        # https://apps.apple.com/ae/app/wio-personal/id1658472726
+        "code": "WIO",
+        "display_name": "Wio Bank",
+        "google_app_id": "io.wio.retail",
+        "google_country": "ae",
+        "apple_app_id": "1658472726",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=com.adcb.bank
+        # https://apps.apple.com/ae/app/adcb/id547172388
+        # ADCB's original/legacy personal banking app ("ADCB", plain name,
+        # no period — confirmed by you on 2026-08-18). ADCB also publishes
+        # ADCB Hayyak, ADCB ProCash, ADCB Nomo, ADCB Business, etc. — this
+        # entry is meant to be their main personal banking app.
+        "code": "ADCB",
+        "display_name": "Abu Dhabi Commercial Bank",
+        "google_app_id": "com.adcb.bank",
+        "google_country": "ae",
+        "apple_app_id": "547172388",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=com.adcb.nexgen
+        # https://apps.apple.com/ae/app/adcb/id6755109454
+        # ADCB's separate, newly redesigned "ADCB." app (with a period —
+        # AI-powered, US equities/crypto trading, etc.) — kept as its own
+        # bank entry rather than replacing the ADCB entry above, per your
+        # request to track both.
+        "code": "ADCB NEW",
+        "display_name": "ADCB (New App)",
+        "google_app_id": "com.adcb.nexgen",
+        "google_country": "ae",
+        "apple_app_id": "6755109454",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=com.adib.mobile
+        # https://apps.apple.com/ae/app/adib-mobile-banking/id1128180440
+        "code": "ADIB",
+        "display_name": "Abu Dhabi Islamic Bank",
+        "google_app_id": "com.adib.mobile",
+        "google_country": "ae",
+        "apple_app_id": "1128180440",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=com.fab.personalbanking
+        # https://apps.apple.com/ae/app/fab-mobile-banking/id1383237548
+        # NOTE: FAB also publishes FAB Business, FAB Securities, FABeAccess,
+        # etc. — this entry is meant to be their main personal banking app;
+        # please verify against your own FAB app store links.
+        "code": "FAB",
+        "display_name": "First Abu Dhabi Bank",
+        "google_app_id": "com.fab.personalbanking",
+        "google_country": "ae",
+        "apple_app_id": "1383237548",
+        "apple_country": "ae",
+    },
+    {
+        # https://play.google.com/store/apps/details?id=com.rak
+        # https://apps.apple.com/ae/app/rakbank/id427758991
+        # NOTE: RAKBANK also publishes "RAKBANK Business" (package
+        # com.rakcorp) — this entry is their main personal banking app;
+        # please verify against your own RAKBANK app store links.
+        "code": "RAK",
+        "display_name": "RAKBANK",
+        "google_app_id": "com.rak",
+        "google_country": "ae",
+        "apple_app_id": "427758991",
+        "apple_country": "ae",
+    },
+]
 
 # Folder this script lives in — the workbook & log are kept next to it
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 EXCEL_PATH = os.path.join(BASE_DIR, "app_ratings_history.xlsx")
 LOG_PATH = os.path.join(BASE_DIR, "ratings_tracker.log")
-
-SUMMARY_SHEET = "Summary"
-GOOGLE_SHEET = "Google Play"
-APPLE_SHEET = "Apple App Store"
-MONTHLY_SHEET = "Monthly Summary"
 
 # ----------------------------------------------------------------------
 # EMAIL CONFIG — every value below comes from an environment variable.
@@ -187,6 +327,59 @@ def fetch_apple_data(app_id: str, country: str) -> dict:
 
 
 # ----------------------------------------------------------------------
+# SHEET NAMING — every bank gets 4 tabs, prefixed with its short code so
+# all 7 banks live side by side in one workbook without colliding.
+# ----------------------------------------------------------------------
+def bank_sheet_names(code: str) -> dict:
+    return {
+        "summary": f"{code} Summary",
+        "google": f"{code} Google Play",
+        "apple": f"{code} Apple App Store",
+        "monthly": f"{code} Monthly Summary",
+    }
+
+
+def migrate_legacy_enbd_sheets(wb: Workbook):
+    """
+    The very first version of this tracker (ENBD-only) used unprefixed
+    tab names: "Summary", "Google Play", "Apple App Store", "Monthly
+    Summary". If a workbook created by that old version is loaded here,
+    rename those tabs in place to "ENBD Summary" etc. so the existing
+    history is kept instead of starting a second, disconnected ENBD tab
+    set. This only ever runs once — after the rename, the legacy names
+    are gone, so later runs are a no-op.
+    """
+    legacy_to_new = {
+        "Summary": "ENBD Summary",
+        "Google Play": "ENBD Google Play",
+        "Apple App Store": "ENBD Apple App Store",
+        "Monthly Summary": "ENBD Monthly Summary",
+    }
+    for old_name, new_name in legacy_to_new.items():
+        if old_name in wb.sheetnames and new_name not in wb.sheetnames:
+            wb[old_name].title = new_name
+            log_and_print(f"Migrated legacy tab '{old_name}' -> '{new_name}'")
+
+
+def reorder_sheets(wb: Workbook, banks: list):
+    """
+    Rebuilds tab order so all 4 tabs for a bank sit together, and banks
+    appear in the same order as the BANKS config list — regardless of the
+    order sheets happened to be created/recreated in during this run.
+    Any sheet that doesn't match the expected naming (shouldn't normally
+    happen) is left at the end rather than dropped.
+    """
+    desired_order = []
+    for bank in banks:
+        names = bank_sheet_names(bank["code"])
+        desired_order.extend([names["summary"], names["google"], names["apple"], names["monthly"]])
+
+    ordered_existing = [name for name in desired_order if name in wb.sheetnames]
+    leftover = [name for name in wb.sheetnames if name not in ordered_existing]
+    wb._sheets = [wb[name] for name in ordered_existing + leftover]
+
+
+# ----------------------------------------------------------------------
 # EXCEL HELPERS
 # ----------------------------------------------------------------------
 HEADER_FILL = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
@@ -204,9 +397,10 @@ def get_or_create_workbook(path: str) -> Workbook:
 
 def append_or_update_platform_row(wb: Workbook, sheet_name: str, day_str: str, data: dict):
     """
-    One FIXED tab per platform (e.g. "Google Play"). Column A is "Date",
-    every other column is one field from `data`. Each day adds one new
-    row at the bottom, so you can filter/sort the whole tab by Date.
+    One FIXED tab per platform per bank (e.g. "ENBD Google Play"). Column A
+    is "Date", every other column is one field from `data`. Each day adds
+    one new row at the bottom, so you can filter/sort the whole tab by
+    Date.
 
     If a row for `day_str` already exists (you re-ran the script the same
     day), that row is updated in place instead of adding a duplicate.
@@ -244,13 +438,13 @@ def append_or_update_platform_row(wb: Workbook, sheet_name: str, day_str: str, d
     return ws
 
 
-def update_summary_sheet(wb: Workbook, day_str: str,
+def update_summary_sheet(wb: Workbook, sheet_name: str, day_str: str,
                           g_total: float, g_avg: float,
                           a_total: float, a_avg: float):
     """
-    Rebuilds the Summary sheet from scratch every run: keeps every previous
-    day's numbers, adds/replaces today's row, recomputes the two "daily"
-    columns per platform, and redraws both charts.
+    Rebuilds one bank's Summary sheet from scratch every run: keeps every
+    previous day's numbers, adds/replaces today's row, recomputes the two
+    "daily" columns per platform, and redraws both charts.
 
     How "daily new ratings" is calculated:
         today's Total Ratings  -  yesterday's Total Ratings
@@ -277,13 +471,13 @@ def update_summary_sheet(wb: Workbook, day_str: str,
     ]
 
     existing_rows = []
-    if SUMMARY_SHEET in wb.sheetnames:
-        ws_old = wb[SUMMARY_SHEET]
+    if sheet_name in wb.sheetnames:
+        ws_old = wb[sheet_name]
         for row in ws_old.iter_rows(min_row=2, values_only=True):
             if row[0] is None:
                 continue
             existing_rows.append(list(row))
-        del wb[SUMMARY_SHEET]
+        del wb[sheet_name]
 
     # keep only the "raw" numbers per day; every delta column is
     # recomputed fresh below so edits/re-runs never compound errors
@@ -310,7 +504,7 @@ def update_summary_sheet(wb: Workbook, day_str: str,
         prev_g_total, prev_g_avg = gt, ga
         prev_a_total, prev_a_avg = at, aa
 
-    ws = wb.create_sheet(SUMMARY_SHEET, 0)
+    ws = wb.create_sheet(sheet_name)
     ws.append(header)
     for c in range(1, len(header) + 1):
         cell = ws.cell(row=1, column=c)
@@ -333,11 +527,12 @@ def update_summary_sheet(wb: Workbook, day_str: str,
 
 def _add_charts(ws, n_rows):
     last_row = n_rows + 1  # +1 to account for the header row
+    bank_label = ws.title.replace(" Summary", "")
 
     dates_ref = Reference(ws, min_col=1, min_row=2, max_row=last_row)
 
     chart1 = LineChart()
-    chart1.title = "Daily New Ratings — Google Play vs Apple App Store"
+    chart1.title = f"{bank_label} — Daily New Ratings — Google Play vs Apple App Store"
     chart1.style = 2
     chart1.y_axis.title = "New ratings that day"
     chart1.x_axis.title = "Date"
@@ -348,7 +543,7 @@ def _add_charts(ws, n_rows):
     ws.add_chart(chart1, "K2")
 
     chart2 = LineChart()
-    chart2.title = "Daily Average Rating — Google Play vs Apple App Store"
+    chart2.title = f"{bank_label} — Daily Average Rating — Google Play vs Apple App Store"
     chart2.style = 10
     chart2.y_axis.title = "Avg rating that day"
     chart2.x_axis.title = "Date"
@@ -359,33 +554,39 @@ def _add_charts(ws, n_rows):
     ws.add_chart(chart2, "K20")
 
 
-def update_monthly_summary(wb: Workbook, day_str: str):
+def update_monthly_summary(wb: Workbook, summary_sheet_name: str, monthly_sheet_name: str, day_str: str):
     """
-    Only meant to be called on the last calendar day of the month. Reads
-    the day-by-day numbers already sitting in the Summary sheet, works out
-    this month's total NEW ratings and this month's average rating (same
-    weighted-average trick as the daily calculation in update_summary_sheet,
-    just applied across a stretch of days instead of one day), and writes
-    one row into a "Monthly Summary" tab — keyed by "YYYY-MM" so re-running
-    on the same month-end day updates that row instead of duplicating it.
+    Only meant to be called on the last calendar day of the month, for one
+    bank at a time. Reads the day-by-day numbers already sitting in that
+    bank's Summary sheet, works out this month's total NEW ratings and
+    this month's average rating (same weighted-average trick as the daily
+    calculation in update_summary_sheet, just applied across a stretch of
+    days instead of one day), and writes one row into that bank's
+    "<CODE> Monthly Summary" tab — keyed by "YYYY-MM" so re-running on the
+    same month-end day updates that row instead of duplicating it.
 
-    Baseline used for the delta:
-      - Ideally, the last row from BEFORE this month started (e.g. July 31
-        if today is August 31) — this gives a true full-calendar-month figure.
-      - If that doesn't exist (tracking only started partway through this
-        month, or this is the very first month ever tracked), it falls back
-        to the EARLIEST row you do have this month, so the numbers still
-        reflect "new ratings since tracking began" rather than sitting
-        blank. That fallback is flagged in the "Notes" column so it's
-        obvious the figure covers a partial month, not the full one.
-      - If today is the ONLY row that exists (tracking started and hit
-        month-end on the very same day), there's genuinely nothing to
-        diff against, and the figures stay blank.
+    Baseline used for the delta — always the FIRST tracked day of THIS
+    calendar month (ideally the 1st), never a day borrowed from the
+    previous month:
+      - Normally that's the row dated "<month>-01" — e.g. August 1 when
+        today is August 31 — so the month's new ratings and month's
+        average rating are worked out purely from that day's and today's
+        Total Ratings / Average Rating, the same weighted-average trick
+        used for the daily figures in update_summary_sheet.
+      - If tracking only started partway through the month (no row on the
+        1st), it falls back to the EARLIEST row you do have this month, so
+        the numbers still reflect "new ratings since tracking began this
+        month" rather than sitting blank. That fallback is flagged in the
+        "Notes" column so it's obvious the figure covers a partial month,
+        not the full one.
+      - If today is the ONLY row that exists this month (tracking started
+        and hit month-end on the very same day), there's genuinely nothing
+        to diff against, and the figures stay blank.
     """
-    if SUMMARY_SHEET not in wb.sheetnames:
+    if summary_sheet_name not in wb.sheetnames:
         return None
 
-    ws_summary = wb[SUMMARY_SHEET]
+    ws_summary = wb[summary_sheet_name]
     rows = []
     for row in ws_summary.iter_rows(min_row=2, values_only=True):
         if row[0] is None:
@@ -401,23 +602,16 @@ def update_monthly_summary(wb: Workbook, day_str: str):
     month_prefix = f"{year:04d}-{month:02d}"
     first_day_this_month = f"{month_prefix}-01"
 
-    # preferred baseline = the most recent row strictly before this month started
-    baseline = None
-    for r in rows:
-        if r[0] < first_day_this_month:
-            baseline = r
-        else:
-            break
+    # baseline = the earliest row THIS MONTH — ideally the 1st of the month
+    this_month_rows = [r for r in rows if r[0] >= first_day_this_month]
+    baseline = this_month_rows[0] if this_month_rows else None
 
     is_partial_month = False
-    if baseline is None:
-        # no full-month baseline available — fall back to the earliest row
-        # we DO have this month (as long as it isn't today's own row)
-        this_month_rows = [r for r in rows if r[0] >= first_day_this_month]
-        if len(this_month_rows) >= 2:
-            baseline = this_month_rows[0]
-            is_partial_month = True
-        # else: today is the only row that exists — nothing to diff against
+    if baseline is not None and baseline[0] == today_row[0]:
+        # today is the only row tracked this month — nothing to diff against
+        baseline = None
+    elif baseline is not None and baseline[0] != first_day_this_month:
+        is_partial_month = True
 
     g_today_total, g_today_avg = today_row[1], today_row[2]
     a_today_total, a_today_avg = today_row[5], today_row[6]
@@ -441,7 +635,7 @@ def update_monthly_summary(wb: Workbook, day_str: str):
         g_month_new = a_month_new = None
         g_month_avg = a_month_avg = None
 
-    notes = f"Partial month — data from {baseline[0]}" if is_partial_month else ""
+    notes = f"Partial month — first tracked day was {baseline[0]}" if is_partial_month else ""
 
     header = [
         "Month",
@@ -450,10 +644,10 @@ def update_monthly_summary(wb: Workbook, day_str: str):
         "Notes",
     ]
 
-    if MONTHLY_SHEET in wb.sheetnames:
-        ws_m = wb[MONTHLY_SHEET]
+    if monthly_sheet_name in wb.sheetnames:
+        ws_m = wb[monthly_sheet_name]
     else:
-        ws_m = wb.create_sheet(MONTHLY_SHEET)
+        ws_m = wb.create_sheet(monthly_sheet_name)
         ws_m.append(header)
         for c in range(1, len(header) + 1):
             cell = ws_m.cell(row=1, column=c)
@@ -533,39 +727,49 @@ def send_email_with_attachment(attachment_path: str, subject: str, body: str):
 
 
 # ----------------------------------------------------------------------
-# MAIN
+# PER-BANK PROCESSING
 # ----------------------------------------------------------------------
-def main():
-    today = date.today()
-    today_str = today.isoformat()
-    log_and_print(f"=== Ratings tracker run: {today_str} ===")
+def process_bank(wb: Workbook, bank: dict, today, today_str: str) -> dict:
+    """
+    Fetches and records one bank's data. Unlike a hard crash, a failure
+    for ONE bank (a scraper hiccup, a renamed app id, a store outage) is
+    caught and logged here so the other 6 banks still get processed, the
+    workbook still gets saved, and the email still goes out — the failed
+    bank is just flagged in the log and in the email body instead of
+    silently vanishing or blocking everyone else.
+    """
+    code = bank["code"]
+    display_name = bank["display_name"]
+    result = {"code": code, "display_name": display_name, "ok": False, "error": None}
 
     try:
-        google_data = fetch_google_data(GOOGLE_APP_ID, GOOGLE_COUNTRY)
+        google_data = fetch_google_data(bank["google_app_id"], bank["google_country"])
         log_and_print(
-            f"Google Play OK — Total Ratings={google_data['Total Ratings']}, "
+            f"[{code}] Google Play OK — Total Ratings={google_data['Total Ratings']}, "
             f"Avg={google_data['Average Rating']}"
         )
     except Exception:
-        log_and_print("FAILED fetching Google Play data:\n" + traceback.format_exc(), "error")
-        sys.exit(1)
+        log_and_print(f"[{code}] FAILED fetching Google Play data:\n" + traceback.format_exc(), "error")
+        result["error"] = "Google Play fetch failed (see log)"
+        return result
 
     try:
-        apple_data = fetch_apple_data(APPLE_APP_ID, APPLE_COUNTRY)
+        apple_data = fetch_apple_data(bank["apple_app_id"], bank["apple_country"])
         log_and_print(
-            f"Apple App Store OK — Total Ratings={apple_data['Total Ratings']}, "
+            f"[{code}] Apple App Store OK — Total Ratings={apple_data['Total Ratings']}, "
             f"Avg={apple_data['Average Rating']}"
         )
     except Exception:
-        log_and_print("FAILED fetching Apple data:\n" + traceback.format_exc(), "error")
-        sys.exit(1)
+        log_and_print(f"[{code}] FAILED fetching Apple data:\n" + traceback.format_exc(), "error")
+        result["error"] = "Apple App Store fetch failed (see log)"
+        return result
 
     try:
-        wb = get_or_create_workbook(EXCEL_PATH)
-        append_or_update_platform_row(wb, GOOGLE_SHEET, today_str, google_data)
-        append_or_update_platform_row(wb, APPLE_SHEET, today_str, apple_data)
+        names = bank_sheet_names(code)
+        append_or_update_platform_row(wb, names["google"], today_str, google_data)
+        append_or_update_platform_row(wb, names["apple"], today_str, apple_data)
         update_summary_sheet(
-            wb, today_str,
+            wb, names["summary"], today_str,
             g_total=float(google_data["Total Ratings"] or 0),
             g_avg=float(google_data["Average Rating"] or 0),
             a_total=float(apple_data["Total Ratings"] or 0),
@@ -574,26 +778,67 @@ def main():
 
         last_day_of_month = calendar.monthrange(today.year, today.month)[1]
         if today.day == last_day_of_month:
-            update_monthly_summary(wb, today_str)
-            log_and_print(f"Month-end detected ({today_str}) — updated Monthly Summary tab.")
+            update_monthly_summary(wb, names["summary"], names["monthly"], today_str)
+            log_and_print(f"[{code}] Month-end detected ({today_str}) — updated {names['monthly']} tab.")
+    except Exception:
+        log_and_print(f"[{code}] FAILED writing Excel data:\n" + traceback.format_exc(), "error")
+        result["error"] = "Excel update failed (see log)"
+        return result
 
+    result.update({
+        "ok": True,
+        "google_total": google_data["Total Ratings"],
+        "google_avg": google_data["Average Rating"],
+        "apple_total": apple_data["Total Ratings"],
+        "apple_avg": apple_data["Average Rating"],
+    })
+    return result
+
+
+# ----------------------------------------------------------------------
+# MAIN
+# ----------------------------------------------------------------------
+def main():
+    today = date.today()
+    today_str = today.isoformat()
+    log_and_print(f"=== Ratings tracker run: {today_str} — {len(BANKS)} bank(s) ===")
+
+    wb = get_or_create_workbook(EXCEL_PATH)
+    migrate_legacy_enbd_sheets(wb)
+
+    results = [process_bank(wb, bank, today, today_str) for bank in BANKS]
+
+    reorder_sheets(wb, BANKS)
+
+    try:
         wb.save(EXCEL_PATH)
         log_and_print(f"Saved workbook: {EXCEL_PATH}")
     except Exception:
         log_and_print("FAILED writing Excel workbook:\n" + traceback.format_exc(), "error")
         sys.exit(1)
 
+    body_lines = [f"Attached is the latest ratings workbook as of {today_str}.", ""]
+    any_failure = False
+    for r in results:
+        if r["ok"]:
+            body_lines.append(
+                f"{r['display_name']} ({r['code']}) — Google Play: {r['google_total']} ratings "
+                f"(avg {r['google_avg']}) | Apple App Store: {r['apple_total']} ratings "
+                f"(avg {r['apple_avg']})"
+            )
+        else:
+            any_failure = True
+            body_lines.append(f"{r['display_name']} ({r['code']}) — FAILED: {r['error']}")
+
     send_email_with_attachment(
         attachment_path=EXCEL_PATH,
-        subject=f"App Store Ratings Update — {today_str}",
-        body=(
-            f"Attached is the latest ratings workbook as of {today_str}.\n\n"
-            f"Google Play — Total Ratings: {google_data['Total Ratings']}, "
-            f"Average Rating: {google_data['Average Rating']}\n"
-            f"Apple App Store — Total Ratings: {apple_data['Total Ratings']}, "
-            f"Average Rating: {apple_data['Average Rating']}"
-        ),
+        subject=f"Bank App Store Ratings Update — {today_str}",
+        body="\n".join(body_lines),
     )
+
+    if any_failure:
+        log_and_print("=== Done (with failures — see FAILED lines above) ===\n", "warning")
+        sys.exit(1)
 
     log_and_print("=== Done ===\n")
 
