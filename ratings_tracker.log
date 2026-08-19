@@ -199,3 +199,26 @@ PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDri
 2026-08-18 08:17:05,934 [INFO] Email sent to: felixab@emiratesnbd.com, felixabraham7576@gmail.com
 2026-08-18 08:17:05,934 [INFO] === Done ===
 
+2026-08-19 06:00:33,760 [INFO] === Ratings tracker run: 2026-08-19 — 9 bank(s) ===
+2026-08-19 06:00:34,032 [INFO] [ENBD] Google Play OK — Total Ratings=225124, Avg=4.696885
+2026-08-19 06:00:34,220 [INFO] [ENBD] Apple App Store OK — Total Ratings=321512, Avg=4.73733
+2026-08-19 06:00:34,457 [INFO] [EI] Google Play OK — Total Ratings=73786, Avg=4.674979
+2026-08-19 06:00:34,594 [INFO] [EI] Apple App Store OK — Total Ratings=113659, Avg=4.71774
+2026-08-19 06:00:34,829 [INFO] [MASHREQ] Google Play OK — Total Ratings=141797, Avg=4.756382
+2026-08-19 06:00:34,977 [INFO] [MASHREQ] Apple App Store OK — Total Ratings=136943, Avg=4.80368
+2026-08-19 06:00:35,200 [INFO] [WIO] Google Play OK — Total Ratings=5751, Avg=4.6090426
+2026-08-19 06:00:35,299 [INFO] [WIO] Apple App Store OK — Total Ratings=6652, Avg=4.80818
+2026-08-19 06:00:35,490 [INFO] [ADCB] Google Play OK — Total Ratings=64338, Avg=4.218525
+2026-08-19 06:00:35,648 [INFO] [ADCB] Apple App Store OK — Total Ratings=113017, Avg=4.68151
+2026-08-19 06:00:35,863 [INFO] [ADCB NEW] Google Play OK — Total Ratings=72649, Avg=4.692165
+2026-08-19 06:00:36,007 [INFO] [ADCB NEW] Apple App Store OK — Total Ratings=73813, Avg=4.47091
+2026-08-19 06:00:36,229 [INFO] [ADIB] Google Play OK — Total Ratings=45320, Avg=4.633374
+2026-08-19 06:00:36,289 [INFO] [ADIB] Apple App Store OK — Total Ratings=251705, Avg=4.70266
+2026-08-19 06:00:36,511 [INFO] [FAB] Google Play OK — Total Ratings=43776, Avg=4.308777
+2026-08-19 06:00:36,672 [INFO] [FAB] Apple App Store OK — Total Ratings=111028, Avg=4.63469
+2026-08-19 06:00:36,882 [INFO] [RAK] Google Play OK — Total Ratings=46134, Avg=4.4835196
+2026-08-19 06:00:36,993 [INFO] [RAK] Apple App Store OK — Total Ratings=33711, Avg=4.6353
+2026-08-19 06:00:37,055 [INFO] Saved workbook: /home/runner/work/appstore_daily_run/appstore_daily_run/app_ratings_history.xlsx
+2026-08-19 06:00:38,852 [INFO] Email sent to: felixab@emiratesnbd.com, felixabraham7576@gmail.com
+2026-08-19 06:00:38,853 [INFO] === Done ===
+
