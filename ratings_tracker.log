@@ -1174,3 +1174,35 @@ PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDri
 2026-09-29 06:00:47,331 [INFO] Email sent to: felixabraham7576@gmail.com
 2026-09-29 06:00:47,331 [INFO] === Done ===
 
+2026-09-30 06:00:40,723 [INFO] === Ratings tracker run: 2026-09-30 — 9 bank(s) ===
+2026-09-30 06:00:41,289 [INFO] [ENBD] Google Play OK — Total Ratings=225395, Avg=4.6784
+2026-09-30 06:00:41,508 [INFO] [ENBD] Apple App Store OK — Total Ratings=321863, Avg=4.73575
+2026-09-30 06:00:41,513 [INFO] [ENBD] Month-end detected (2026-09-30) — updated ENBD Monthly Summary tab.
+2026-09-30 06:00:41,726 [INFO] [EI] Google Play OK — Total Ratings=73902, Avg=4.6579857
+2026-09-30 06:00:42,507 [INFO] [EI] Apple App Store OK — Total Ratings=113793, Avg=4.71562
+2026-09-30 06:00:42,511 [INFO] [EI] Month-end detected (2026-09-30) — updated EI Monthly Summary tab.
+2026-09-30 06:00:42,748 [INFO] [MASHREQ] Google Play OK — Total Ratings=149914, Avg=4.743529
+2026-09-30 06:00:42,888 [INFO] [MASHREQ] Apple App Store OK — Total Ratings=141596, Avg=4.79915
+2026-09-30 06:00:42,892 [INFO] [MASHREQ] Month-end detected (2026-09-30) — updated MASHREQ Monthly Summary tab.
+2026-09-30 06:00:43,109 [INFO] [WIO] Google Play OK — Total Ratings=5978, Avg=4.5306125
+2026-09-30 06:00:43,303 [INFO] [WIO] Apple App Store OK — Total Ratings=6875, Avg=4.8045
+2026-09-30 06:00:43,307 [INFO] [WIO] Month-end detected (2026-09-30) — updated WIO Monthly Summary tab.
+2026-09-30 06:00:43,559 [INFO] [ADCB] Google Play OK — Total Ratings=64220, Avg=4.211118
+2026-09-30 06:00:43,720 [INFO] [ADCB] Apple App Store OK — Total Ratings=113010, Avg=4.68154
+2026-09-30 06:00:43,725 [INFO] [ADCB] Month-end detected (2026-09-30) — updated ADCB Monthly Summary tab.
+2026-09-30 06:00:43,947 [INFO] [ADCB NEW] Google Play OK — Total Ratings=79644, Avg=4.668088
+2026-09-30 06:00:44,115 [INFO] [ADCB NEW] Apple App Store OK — Total Ratings=82053, Avg=4.4874
+2026-09-30 06:00:44,120 [INFO] [ADCB NEW] Month-end detected (2026-09-30) — updated ADCB NEW Monthly Summary tab.
+2026-09-30 06:00:44,296 [INFO] [ADIB] Google Play OK — Total Ratings=45765, Avg=4.6359434
+2026-09-30 06:00:44,500 [INFO] [ADIB] Apple App Store OK — Total Ratings=254481, Avg=4.69897
+2026-09-30 06:00:44,504 [INFO] [ADIB] Month-end detected (2026-09-30) — updated ADIB Monthly Summary tab.
+2026-09-30 06:00:44,697 [INFO] [FAB] Google Play OK — Total Ratings=44320, Avg=4.297159
+2026-09-30 06:00:44,919 [INFO] [FAB] Apple App Store OK — Total Ratings=113812, Avg=4.63441
+2026-09-30 06:00:44,923 [INFO] [FAB] Month-end detected (2026-09-30) — updated FAB Monthly Summary tab.
+2026-09-30 06:00:45,533 [INFO] [RAK] Google Play OK — Total Ratings=46175, Avg=4.4738455
+2026-09-30 06:00:45,639 [INFO] [RAK] Apple App Store OK — Total Ratings=33726, Avg=4.63457
+2026-09-30 06:00:45,644 [INFO] [RAK] Month-end detected (2026-09-30) — updated RAK Monthly Summary tab.
+2026-09-30 06:00:45,935 [INFO] Saved workbook: /home/runner/work/appstore_daily_run/appstore_daily_run/app_ratings_history.xlsx
+2026-09-30 06:00:48,712 [INFO] Email sent to: felixabraham7576@gmail.com
+2026-09-30 06:00:48,712 [INFO] === Done ===
+
