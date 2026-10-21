@@ -1666,3 +1666,26 @@ PermissionError: [Errno 13] Permission denied: 'C:\\Users\\FELIX ABRAHAM\\OneDri
 2026-10-20 06:00:50,264 [INFO] Email sent to: felixabraham7576@gmail.com
 2026-10-20 06:00:50,264 [INFO] === Done ===
 
+2026-10-21 06:00:41,753 [INFO] === Ratings tracker run: 2026-10-21 — 9 bank(s) ===
+2026-10-21 06:00:42,375 [INFO] [ENBD] Google Play OK — Total Ratings=230393, Avg=4.6988683
+2026-10-21 06:00:42,467 [INFO] [ENBD] Apple App Store OK — Total Ratings=327874, Avg=4.73442
+2026-10-21 06:00:42,732 [INFO] [EI] Google Play OK — Total Ratings=75249, Avg=4.6813436
+2026-10-21 06:00:42,832 [INFO] [EI] Apple App Store OK — Total Ratings=116483, Avg=4.71514
+2026-10-21 06:00:43,022 [INFO] [MASHREQ] Google Play OK — Total Ratings=154001, Avg=4.7424617
+2026-10-21 06:00:43,149 [INFO] [MASHREQ] Apple App Store OK — Total Ratings=144177, Avg=4.79744
+2026-10-21 06:00:43,285 [INFO] [WIO] Google Play OK — Total Ratings=6086, Avg=4.5728645
+2026-10-21 06:00:43,382 [INFO] [WIO] Apple App Store OK — Total Ratings=6979, Avg=4.80069
+2026-10-21 06:00:43,573 [INFO] [ADCB] Google Play OK — Total Ratings=64183, Avg=4.2099133
+2026-10-21 06:00:43,702 [INFO] [ADCB] Apple App Store OK — Total Ratings=113016, Avg=4.68142
+2026-10-21 06:00:43,853 [INFO] [ADCB NEW] Google Play OK — Total Ratings=83567, Avg=4.6507406
+2026-10-21 06:00:44,005 [INFO] [ADCB NEW] Apple App Store OK — Total Ratings=85727, Avg=4.49311
+2026-10-21 06:00:44,352 [INFO] [ADIB] Google Play OK — Total Ratings=45996, Avg=4.6431503
+2026-10-21 06:00:44,500 [INFO] [ADIB] Apple App Store OK — Total Ratings=256012, Avg=4.69678
+2026-10-21 06:00:45,028 [INFO] [FAB] Google Play OK — Total Ratings=44589, Avg=4.2919955
+2026-10-21 06:00:45,234 [INFO] [FAB] Apple App Store OK — Total Ratings=115229, Avg=4.63454
+2026-10-21 06:00:45,451 [INFO] [RAK] Google Play OK — Total Ratings=46200, Avg=4.4643054
+2026-10-21 06:00:45,576 [INFO] [RAK] Apple App Store OK — Total Ratings=33737, Avg=4.63438
+2026-10-21 06:00:45,941 [INFO] Saved workbook: /home/runner/work/appstore_daily_run/appstore_daily_run/app_ratings_history.xlsx
+2026-10-21 06:00:51,127 [INFO] Email sent to: felixabraham7576@gmail.com
+2026-10-21 06:00:51,127 [INFO] === Done ===
+
